@@ -1,6 +1,20 @@
-# Personalia Node.js Client
+<div align="center">
+  <img src="https://dashboard.personalia.io/assets/Logo-0878f443.svg" alt="Personalia Logo" width="300">
+  <h1>Personalia Node.js Client</h1>
+</div>
 
 A TypeScript/Node.js client library for the [Personalia API](https://www.personalia.io/), which allows you to generate personalized or versioned JPG/PNG images and PDF output from your Adobe InDesign templates.
+
+## About Personalia
+
+[Personalia](https://www.personalia.io/) is a powerful platform for creating personalized content at scale. With Personalia, you can:
+
+- Generate personalized PDFs, PNGs, and JPGs from Adobe InDesign templates
+- Create dynamic content for marketing campaigns, certificates, badges, and more
+- Automate content creation workflows with a robust API
+- Integrate with your existing systems and processes
+
+Visit [personalia.io](https://www.personalia.io/) to learn more and sign up for an account.
 
 ## Installation
 
@@ -570,3 +584,19 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 
 MIT
+
+## Getting Started with Personalia
+
+To use this library, you'll need a Personalia API key. Visit [personalia.io](https://www.personalia.io/) to:
+
+1. Create an account and access the dashboard
+2. Create templates using Adobe InDesign
+3. Generate your API key
+4. Start creating personalized content at scale
+
+<div align="center">
+  <a href="https://www.personalia.io/" target="_blank">
+    <img src="https://dashboard.personalia.io/assets/Logo-0878f443.svg" alt="Personalia Logo" width="200">
+    <p>Visit personalia.io to learn more</p>
+  </a>
+</div>
