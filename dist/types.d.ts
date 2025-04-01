@@ -13,8 +13,9 @@ export interface CreateContentResponse {
     RequestId: string;
 }
 export interface GetContentResponse {
-    Content: string;
-    ContentType: string;
+    Status: 'Completed' | 'InProgress' | 'Failed';
+    URLs?: string[];
+    FailureDescription?: string | null;
 }
 export interface CreateUrlResponse {
     Url: string;
@@ -25,8 +26,9 @@ export interface ErrorResponse {
     ErrorParameters?: Record<string, string>;
 }
 export interface TemplateInfo {
-    Fields: Record<string, {
+    TemplateId: string;
+    Fields: Array<{
+        Name: string;
         Type: string;
-        Description?: string;
     }>;
 }

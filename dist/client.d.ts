@@ -27,4 +27,24 @@ export declare class PersonaliaClient {
      * @returns A promise that resolves to the template info
      */
     getTemplateInfo(templateId: string): Promise<TemplateInfo>;
+    /**
+     * Polls for content completion until it's ready or maximum attempts are reached.
+     * @param requestId The ID of the content request to poll for
+     * @param maxAttempts Maximum number of polling attempts (default: 30)
+     * @param interval Polling interval in milliseconds (default: 2000)
+     * @returns A promise that resolves to the content response when ready
+     * @throws Error if content is not ready after maximum attempts
+     */
+    pollForContent(requestId: string, maxAttempts?: number, interval?: number): Promise<GetContentResponse>;
+    /**
+     * Creates content and polls for its completion in a single operation.
+     * This method combines createContent and pollForContent for convenience.
+     *
+     * @param request The create content request parameters
+     * @param maxAttempts Maximum number of polling attempts (default: 30)
+     * @param interval Polling interval in milliseconds (default: 2000)
+     * @returns A promise that resolves to the content response when ready
+     * @throws Error if content creation fails or if content is not ready after maximum attempts
+     */
+    createContentAndPoll(request: CreateContentRequest, maxAttempts?: number, interval?: number): Promise<GetContentResponse>;
 }

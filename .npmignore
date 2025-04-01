@@ -1,0 +1,36 @@
+# Source
+src/
+
+# Tests
+tests/
+jest.config.js
+coverage/
+
+# Examples (optional - you might want to keep these for documentation)
+# examples/
+
+# Development files
+.github/
+.vscode/
+.editorconfig
+.prettierrc
+.eslintrc
+tsconfig.json
+
+# Git
+.git/
+.gitignore
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Build tools
+.travis.yml
+.jenkins.yml
+.gitlab-ci.yml
+
+# Misc
+.DS_Store
+node_modules/
