@@ -1,0 +1,516 @@
+openapi: 3.0.0
+info:
+  title: Personalia API
+  description: |
+    [Personalia](https://www.personalia.io/) is a SaaS platform that generates personalized or versioned JPG/PNG images and PDF output from your templates (exported from Adobe InDesign).
+
+    Refer to the Personalia documentation for information on how to [setup](https://help.xmpie.com/Personalia/en/index.htm#t=Templates_fields%2C_and_CPKGs.htm) and [upload](https://help.xmpie.com/Personalia/en/index.htm#t=Personalia_dashboard.htm) your templates.
+
+    Once your templates are uploaded to the Personalia Dashboard, you simply create an [API key](https://help.xmpie.com/Personalia/en/index.htm#t=Personalia_dashboard.htm) and copy the sample JSON required to create images or a PDF from your template.
+
+    <br/>
+
+    The API documentation below shows how you can use the API key and sample JSON to integrate high quality, professional images and PDF documents into your website, CRM or custom application.
+
+    Personalia's API are accessible using HTTPS protocol only. The base URL for API calls is [https://api.personalia.io/](https://api.personalia.io/) followed by one of the REST API endpoints listed below.
+
+    APIs receive and return JSON objects. The "Content-Type" header with the "application/json" value should be added to all requests.
+
+    Each API endpoint expects to receive the API key in the "Authorization" header in the format: "ApiKey [api_key]".
+
+    The API key is used for authentication and authorization of the caller.
+
+    For more information and samples, refer to the [API Quick Start](https://help.xmpie.com/Personalia/en/index.htm#t=Developers.htm&rhsearch=preview&rhsyns=%20).
+
+    <br/>
+
+    The Personalia API returns standard HTTP status codes: 200 (Success), 403 (Forbidden), 401 (Unauthorized), 400 (Bad request), 500 (internal server error).
+
+    <details id="ErrorCodes">
+      <summary>Error code details</summary>
+
+      | Error ID | Reason | Fix |
+      | -------- | ------ | --- |
+      | 101 | API key does not belong to this template. | Copy the correct API key from the template's workspace in the Personalia dashboard and paste it into your API call. |
+      | 102 | Invalid or missing API key. | Copy the correct API key from the template's workspace in the Personalia dashboard and paste it into your API call. |
+      | 103 | Invalid Template ID. | Copy the correct template ID from the Personalia dashboard and paste it into your API call. |
+      | 104 | Invalid value(s) in the Output section. | Fix you API call. Check the Output section and validate that all the values of the parameters are valid. |
+      | 105 | Unable to fetch more than {{MaxFetchCount}} Fetch URLs. | Contact the designer to reduce the number of Fetch URLs in the template in uCreate. |
+      | 106 | Unable to fetch more than {{TotalMaxFetchSize}} MB in total of all Fetch URLs. | Reduce the Fetch URL sizes so that the total size of all Fetch URLs does not exceeded the maximum. Alternatively, use different images. |
+      | 107 | Failed to fetch the Fetch URL or it timed out. | Correct the image or the URL. Alternatively, use a different image. |
+      | 108 | Invalid/unsupported image format in Fetch URL. | Use a different image format. Only PNG & JPG are supported. |
+      | 109 | Invalid JSON syntax. | Fix your API call. Check the JSON and validate that all maditory parameters are included and that their types are valid. |
+      | 111 | Input field {{FieldName}} is missing in the API call. | Fix your API call. Validate that all expected input fields are included. |
+      | 112 | Invalid date format in input field {{FieldName}}. | Fix your API call. Expected date format is YYYY-MM-DD (e.g., 2023-07-24). |
+      | 113 | Invalid number format in input field {{FieldName}}. | Fix your API call. Valid number format is:  No comma separator allowed, only 1 period (optional) and it can be a negative number. |
+      | 114 | Invalid Fetch protocol. It must be HTTP or HTTPS. | Fix your API call. Use HTTP/HTTPS in the Fetch URL. |
+      | 117 | Insufficient credits. | Insufficient credits remaining this month for your account. To increase the number of credits, upgrade your subscription plan. |
+      | 118 | Unsupported output format. | Only PDF is supported. |
+      | 1000 | Something went wrong. | Contact support. |
+      | 1001 | Invalid logic in a rule. | Contact the designer to check the rules defined in uCreate. |
+      | 1002 | Something went wrong in a design document. | Contact the designer to fix the document in uCreate. |
+      | 1003 | Input value(s) resulted in invalid barcode generation. | Contact the designer to fix the rule logic defined in uCreate. |
+      | 1004 | No output. This may be due to Skip or Abort logic defined in uCreate. | Contact the designer to fix the rule logic defined in uCreate. |
+      | 1005 | Input value(s) resulted in division by zero. | Contact the designer to fix the rule logic defined in uCreate. |
+      | 1006 | Missing graphic or text asset detected. | Contact the designer to fix the design and include the asset in uCreate. |
+      | 1007 | Missing style detected. | Contact the designer to fix the design and include the style in uCreate. |
+      | 1008 | Missing font detected. | Contact the designer to fix the design and include the font in uCreate. |
+      | 1009 | Text overflow detected. | Contact the designer to fix the design in uCreate either by copyfitting or truncating the input value. |
+
+    </details>
+  version: v1
+
+xmpie:
+  localhost: https://api-dev.personalia.io
+  developer.personalia.io: https://api.personalia.io
+  developer-dev.personalia.io: https://api-dev.personalia.io
+  developer-qa.personalia.io: https://api-qa.personalia.io
+  developer-staging.personalia.io: https://api-staging.personalia.io
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: The expected value format is "ApiKey XXXXX". The "ApiKey" prefix is case-sensitive and required.
+
+  schemas:
+    CreateContentRequest:
+      description: Model of a create content API request body.
+      type: object
+      required:
+        - TemplateId
+        - Fields
+      properties:
+        TemplateId:
+          type: string
+          description: A unique identifier of a Personalia template.
+        Fields:
+          type: object
+          properties:
+            FieldName1: 
+              type: string
+              description: |
+                A template's input data field name and value. Valid types are string, number, date and boolean. Note these expected formats:
+
+                * Number - no comma separator, only 1 period (optional) and it can be a negative number (e.g., 1000.50 or -2000).
+
+                * Date - in the format yyyy-mm-dd (e.g., 2023-10-30).
+
+                * Boolean - valid values are 0 and 1 where 0 represents false and 1 represents true.
+            FieldName2: 
+              type: string
+              description: |
+                A template's input data field name and value. Valid types are string, number, date and boolean. Note these expected formats:
+
+                * Number - no comma separator, only 1 period (optional) and it can be a negative number (e.g., 1000.50 or -2000).
+
+                * Date - in the format yyyy-mm-dd (e.g., 2023-10-30).
+
+                * Boolean - valid values are 0 and 1 where 0 represents false and 1 represents true.
+        Output:
+          type: object
+          properties:
+            Format:
+              type: string
+              description: Output format type.
+              default: PDF
+              enum:
+                - PDF
+                - JPG
+                - PNG
+            Quality:
+              type: string
+              description: Output quality for PDF.
+              default: Display
+              enum:
+                - Display
+                - Print
+            Resolution:
+              type: integer
+              description: Resolution for image formats in DPI.
+              default: 72
+              minimum: 72
+              maximum: 300
+            Package:
+              type: boolean
+              description: Package and compress the output file(s) into a single ZIP file, making the output easier and quicker to transfer. Note that multi-page documents processed in image format, will result in a separate JPG or PNG for each page.
+              default: false
+            StrictPolicy:
+              type: boolean
+              description: |
+                When set to true, fail generation if any of these issues occur: missing asset, missing font, missing style, or text overflow. \
+                When set to false, these issues are ignored and this may cause unexpected results.
+              default: true
+
+    CreateContentResponse:
+      description: Model of a create content API response body.
+      type: object
+      required:
+        - RequestId
+      properties:
+        RequestId:
+          type: string
+          description: A create content request's unique identifier.
+
+    BadRequestResponse:
+      description: Model of a validation or production error response body.
+      type: object
+      required:
+        - Reason
+      properties:
+        Reason:
+          type: string
+          description: A description explaining the reason for the failure.
+        ErrorId:
+          type: integer
+          description: A code identifying the error. See [Error code details](#ErrorCodes) for a possible way to fix the issue.
+        ErrorParameters:
+          type: object
+          description: A list of error parameters.
+          properties:
+            Param1:
+              type: string
+              description: A parameter name and its value.
+
+    GetContentResponse:
+      description: Model of a get content API request body.
+      type: object
+      required:
+        - Status
+      properties:
+        Status:
+          type: string
+          description: Status of a content creation request.
+          enum:
+            - Completed
+            - InProgress
+            - Failed
+        URLs:
+          type: array
+          description: Temporary URLs (available for 15 minutes only) to a content request result.
+          items:
+            type: string
+            minItems: 1
+            uniqueItems: true
+        FailureDescription:
+          type: object
+          description: Error information.
+          properties:
+            Reason:
+              type: string
+              description: A description explaining the reason for the failure.
+            ErrorId:
+              type: integer
+              description: A code identifying the error. See [Error code details](#ErrorCodes) for a possible way to fix the issue.
+
+    CreateUrlResponse:
+      description: Model of a create content on-demand URL response body.
+      type: object
+      required:
+        - Url
+      properties:
+        Url:
+          type: string
+          description: A content on-demand URL.
+
+    MessageResponse:
+      description: Model of a test API key response body.
+      type: object
+      required:
+        - Message
+      properties:
+        Message:
+          type: string
+          description: Test API key message.
+
+    TemplateInfoResponse:
+      description: Model of a template info response body.
+      type: object
+      required:
+        - TemplateId
+      properties:
+        TemplateId:
+          type: string
+          description: A unique identifier of a Personalia template.
+        Fields:
+          type: array
+          description: A list of fields.
+          items:
+            type: object
+            properties:
+              Name:
+                type: string
+                description: The field name used in the specified template.
+              Type:
+                type: string
+                description: The field type associated with the field name. It can be String, Number, Date, Boolean or Unknown.
+
+paths:
+  /v1/content:
+    post:
+      summary: Submits a request for an image or PDF document creation.
+      description: |
+       Submits a request for an image or PDF document creation by providing Personalia template ID and collection of template fields with their values.
+      operationId: CreateContent
+      parameters:
+        - name: Authorization
+          in: header
+          description: Access to the API is granted only when the request includes an Authorization header that contains the API key for the Personalia workspace that contains the document. For testing here in the documentation, use the Authorize button above.
+          required: false
+          example: ApiKey CustomerApiKey
+          schema:
+            type: string
+      tags:
+        - Content
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        description: Parameters for the image or PDF document creation. For example, paste in the sample JSON that you copied from the Personalia Dashboard Preview.
+        required: false
+        content:
+          application/json:
+            example: |
+              {
+                "TemplateId": "c790fd3b-10ef-4a58-963b-b688e564eefa",
+                "Fields": {
+                   "First Name": "Peter",
+                   "Machine": "AK-2000",
+                   "Color": "Brown"
+                },
+                "Output": {
+                  "Format": "JPG",
+                  "Resolution": 150
+                }
+              }
+            schema:
+              $ref: '#/components/schemas/CreateContentRequest'
+      responses:
+        '200':
+          description: Request was successfully submited and a request ID is returned.
+          content:
+            application/json:
+              example: |
+                {
+                    "RequestId": "777c3a07-0b8c-4a70-bd1b-ccc81c9c012a"
+                }
+              schema:
+                $ref: '#/components/schemas/CreateContentResponse'
+        '400':
+          description: Validation or production error occurred.
+          content:
+            application/json:
+              example: |
+                {
+                    "Reason": "Input field Color is missing in the API call.",
+                    "ErrorId": 111,
+                    "ErrorParameters": {
+                      "FieldName": "Color"
+                    }
+                }
+              schema:
+                $ref: '#/components/schemas/BadRequestResponse'
+
+    get:
+      summary: Gets the result of an image or PDF creation request.
+      description: Acquires result of an image or PDF creation request by providing request ID.
+      operationId: GetContent
+      parameters:
+        - name: requestId
+          in: query
+          description: The request ID which identifies an image or PDF document creation request.
+          required: true
+          example: 777c3a07-0b8c-4a70-bd1b-ccc81c9c012a
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: Access to the API is granted only when the request includes an Authorization header that contains the API key for the Personalia workspace that contains the document. For testing here in the documentation, use the Authorize button above.
+          required: false
+          example: ApiKey CustomerApiKey
+          schema:
+            type: string
+      tags:
+        - Content
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: |
+            Create content request's status was successfully acquired. If the status is "Completed" then the result is a temporary URL (or few URLs if more than 1 file was created). The URLs are available for 15 minutes only. If the status is "InProgress", after a delay, repeat the API call to recheck the status. If the status is "Failed", error information is provided in the response body. Usually, error information is provided immediately. However, some errors may take a few seconds to be reported. If the information is missing in the response body, after a delay, repeat the API call.
+          content:
+            application/json:
+              example: |
+                {
+                  "Status": "Completed",
+                  "URLs": [
+                      "https://fs-personalia-io..."
+                  ],
+                  "FailureDescription": null
+                }
+              schema:
+                $ref: '#/components/schemas/GetContentResponse'
+        '400':
+          description: Validation or production error occurred.
+          content:
+            application/json:
+              example: |
+                {
+                    "Reason": "Invalid field value"
+                }
+              schema:
+                $ref: '#/components/schemas/BadRequestResponse'
+
+  /v1/content/url:
+    post:
+      summary: Submits a request to create a content on-demand URL.
+      description: |
+       Submits a request to create a content on-demand URL. When the URL is clicked, it generates the content according to the parameters in the URL creation request. The URL does not contain any personal identifying information. Note that currently, only PDF format is supported.
+      operationId: CreateUrl
+      parameters:
+        - name: Authorization
+          in: header
+          description: Access to the API is granted only when the request includes an Authorization header that contains the API key for the Personalia workspace that contains the document. For testing here in the documentation, use the Authorize button above.
+          required: false
+          example: ApiKey CustomerApiKey
+          schema:
+            type: string
+      tags:
+        - Content
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        description: Parameters for the PDF document that will be created later when the URL is clicked. For example, paste in the sample JSON that you copied from the Personalia Dashboard Preview. Note that the Output Format can be PDF only.
+        required: true
+        content:
+          application/json:
+            example: |
+              {
+                "TemplateId": "c790fd3b-10ef-4a58-963b-b688e564eefa",
+                "Fields": {
+                   "First Name": "Peter",
+                   "Machine": "AK-2000",
+                   "Color": "Brown"
+                },
+                "Output": {
+                  "Format": "PDF",
+                  "Quality": "Display"
+                }
+              }
+            schema:
+              $ref: '#/components/schemas/CreateContentRequest'
+      responses:
+        '200':
+          description: Request was successfully submited and a URL is returned.
+          content:
+            application/json:
+              example: |
+                {
+                    "Url": "https://content.personalia.io?token=03f19f5f6d4842748c12c18dff705ec0e94fbb05a6003a1044093bb04199a146"
+                }
+              schema:
+                $ref: '#/components/schemas/CreateUrlResponse'
+        '400':
+          description: Validation or production error occurred.
+          content:
+            application/json:
+              example: |
+                {
+                    "Reason": "Input field Color is missing in the API call.",
+                    "ErrorId": 111,
+                    "ErrorParameters": {
+                      "FieldName": "Color"
+                    }
+                }
+              schema:
+                $ref: '#/components/schemas/BadRequestResponse'
+
+  /v1/content/test:
+    post:
+      summary: Submits a request to validate the API key.
+      description: |
+       Submits a request to validate that the API key exists. This is particularly useful for automation platforms (e.g., Zapier) which require validation of an API key before use. Please note that this API will only validate that the API key exists and not that it is valid for use against a specific template.
+      operationId: TestApiKey
+      parameters:
+        - name: Authorization
+          in: header
+          description: Access to the API is granted only when the request includes an Authorization header that contains the API key for the Personalia workspace that contains the document. For testing here in the documentation, use the Authorize button above.
+          required: false
+          example: ApiKey CustomerApiKey
+          schema:
+            type: string
+      tags:
+        - Content
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: API key is valid.
+          content:
+            application/json:
+              example: |
+                {
+                    "Message": "API key exists."
+                }
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          description: API key is not valid.
+        '403':
+          description: API key belongs to another Personalia service.
+
+  /v1/content/templates/{templateId}/info:
+    get:
+      summary: Gets a list of the fields used in a desired template.
+      description: |
+       Acquires all the field names and their types which are required when calling the desired template.
+      operationId: GetTemplateInfo
+      parameters:
+        - name: Authorization
+          in: header
+          description: Access to the API is granted only when the request includes an Authorization header that contains the API key for the Personalia workspace that contains the document. For testing here in the documentation, use the Authorize button above.
+          required: false
+          example: ApiKey CustomerApiKey
+          schema:
+            type: string
+        - name: templateId
+          in: path
+          description: The template ID which identifies the desired template.
+          required: true
+          example: c790fd3b-10ef-4a58-963b-b688e564eefa
+          schema:
+            type: string
+      tags:
+        - Content
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: The request was successful. The response includes the template ID followed by a list of all the fields of the template. For each field, it's name and type is listed.
+          content:
+            application/json:
+              example: |
+                {
+                    "TemplateId": "c790fd3b-10ef-4a58-963b-b688e564eefa",
+                    "Fields":
+                    [
+                      { "Name": "First Name", "Type": "String" },
+                      { "Name": "Machine", "Type": "Number" },
+                      { "Name": "Color", "Type": "String" }
+                    ]
+                }
+              schema:
+                $ref: '#/components/schemas/TemplateInfoResponse'
+        '400':
+          description: Validation or production error occurred.
+          content:
+            application/json:
+              example: |
+                {
+                    "Reason": "Invalid Template ID.",
+                    "ErrorId": 103,
+                    "ErrorParameters": null
+                }
+              schema:
+                $ref: '#/components/schemas/BadRequestResponse'

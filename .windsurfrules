@@ -1,0 +1,50 @@
+Use TypeScript
+
+    Provides strong typing and improves developer experience.
+    Helps avoid runtime errors through static type checking.
+    Simplifies integration into TypeScript-based projects.
+
+HTTP Client
+
+    Use a robust HTTP client like axios or the native fetch API.
+    Centralize the HTTP client logic (httpClient.ts) for easier maintenance.
+
+Error Handling
+
+    Create a custom error handling class to provide consistent error messages.
+    Map API errors to custom error objects with relevant status codes and messages.
+
+Modular Design
+
+    Split API endpoints into separate modules (e.g., auth, users, assets).
+    Avoid a monolithic structure for easier maintenance and scalability.
+
+Code Comments & JSDoc
+
+    Provide clear comments for complex code sections.
+    Use JSDoc to generate documentation
+
+README.md
+
+Include a well-structured README.md file:
+    Library purpose and features.
+    Installation instructions.
+    Code examples for common use cases.
+    Contributing guidelines.
+
+Unit & Integration Tests
+
+    Use a testing framework like Jest or Mocha/Chai.
+    Write tests for:
+        Successful API calls.
+        Error handling.
+        Edge cases (e.g., invalid inputs).
+
+Test Coverage
+
+    Aim for high code coverage (90%+).
+    Use tools like nyc (for Jest) to measure coverage.
+
+Mocking API Requests
+
+    Use libraries like nock to mock API responses during testing.
