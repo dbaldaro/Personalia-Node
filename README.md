@@ -14,7 +14,9 @@ A TypeScript/Node.js client library for the [Personalia API](https://www.persona
 - Automate content creation workflows with a robust API
 - Integrate with your existing systems and processes
 
-Visit [personalia.io](https://www.personalia.io/) to learn more and sign up for an account.
+Visit [personalia.io](https://www.personalia.io/) to learn more. Personalia is currently in Beta Testing and is available for use via a Beta account - available at https://www.personalia.io/personalia-beta-signup/
+
+For more information email david.baldaro@personalia.io
 
 ## Installation
 

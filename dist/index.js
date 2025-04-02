@@ -14,7 +14,10 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PersonaliaClient = void 0;
+exports.PERSONALIA_ERRORS = exports.PersonaliaError = exports.PersonaliaClient = void 0;
 var client_1 = require("./client");
 Object.defineProperty(exports, "PersonaliaClient", { enumerable: true, get: function () { return client_1.PersonaliaClient; } });
 __exportStar(require("./types"), exports);
+var errors_1 = require("./errors");
+Object.defineProperty(exports, "PersonaliaError", { enumerable: true, get: function () { return errors_1.PersonaliaError; } });
+Object.defineProperty(exports, "PERSONALIA_ERRORS", { enumerable: true, get: function () { return errors_1.PERSONALIA_ERRORS; } });
