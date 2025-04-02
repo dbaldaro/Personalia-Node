@@ -32,11 +32,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/davidbaldaro/Personalia-Node"
+    "url": "https://github.com/dbaldaro/Personalia-Node"
   },
   "homepage": "https://personalia.io",
   "bugs": {
-    "url": "https://github.com/davidbaldaro/Personalia-Node/issues"
+    "url": "https://github.com/dbaldaro/Personalia-Node/issues"
   },
   "publishConfig": {
     "access": "public"
