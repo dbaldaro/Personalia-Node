@@ -1,6 +1,6 @@
 {
   "name": "personalia-node",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A TypeScript/Node.js client library for the Personalia API to generate personalized PDFs, PNGs, and JPGs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
