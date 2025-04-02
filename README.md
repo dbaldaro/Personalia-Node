@@ -309,9 +309,9 @@ Represents the response from the `getContent` and `pollForContent` methods.
 
 ```typescript
 interface GetContentResponse {
-  Status: 'Pending' | 'Processing' | 'Completed' | 'Failed';
+  Status: 'Completed' | 'InProgress' | 'Failed';
   URLs?: string[];  // Array of URLs to download the content (when Status is 'Completed')
-  FailureDescription?: string; // Description of the failure (when Status is 'Failed')
+  FailureDescription?: string | null; // Description of the failure (when Status is 'Failed')
 }
 ```
 
@@ -335,22 +335,38 @@ interface CreateUrlResponse {
 }
 ```
 
-##### `GetTemplateInfoResponse`
+##### `TemplateInfo`
 
 Represents the response from the `getTemplateInfo` method.
 
 ```typescript
-interface GetTemplateInfoResponse {
+interface TemplateInfo {
   TemplateId: string;
-  Name: string;
-  Fields: TemplateField[];
+  Fields: Array<{
+    Name: string;
+    Type: string;
+  }>;
 }
+```
 
-interface TemplateField {
-  Name: string;
-  Type: string;
-  Required: boolean;
-  DefaultValue?: string;
+Example response:
+```json
+{
+  "TemplateId": "c790fd3b-10ef-4a58-963b-b688e564eefa",
+  "Fields": [
+    {
+      "Name": "First Name",
+      "Type": "String"
+    },
+    {
+      "Name": "Machine",
+      "Type": "Number"
+    },
+    {
+      "Name": "Color",
+      "Type": "String"
+    }
+  ]
 }
 ```
 
@@ -476,21 +492,44 @@ async function createContentUrl() {
 
 ## Error Handling
 
-The library provides detailed error messages for various scenarios:
+The library provides a robust error handling system with the `PersonaliaError` class, which includes detailed information about API errors:
 
 ```typescript
 try {
   const content = await client.getContent('invalid-request-id');
 } catch (error) {
-  // Handle specific error types
-  if (error.message.includes('404')) {
-    console.error('Content not found or not ready yet');
-  } else if (error.message.includes('401')) {
-    console.error('Authentication failed - check your API key');
+  if (error instanceof PersonaliaError) {
+    // Access detailed error information
+    console.error(`Error ${error.statusCode}: ${error.message}`);
+    console.error(`Error ID: ${error.errorId || 'N/A'}`);
+    console.error(`Error Code: ${error.errorCode || 'N/A'}`);
+    
+    // Handle specific error types
+    if (error.statusCode === 404) {
+      console.error('Content not found or not ready yet');
+    } else if (error.statusCode === 401) {
+      console.error('Authentication failed - check your API key');
+    } else if (error.errorId === '117') {
+      console.error('Insufficient credits - please top up your account');
+    }
   } else {
-    console.error('An error occurred:', error.message);
+    console.error('An unexpected error occurred:', error.message);
   }
 }
+```
+A full list of the error codes can be found at https://developer.personalia.io/
+
+### Personalia Error Codes
+
+The library maps specific Personalia API error codes to helpful messages and suggested fixes. You can access the full list of error codes:
+
+```typescript
+import { PERSONALIA_ERRORS } from 'personalia';
+
+// Example: Get information about a specific error code
+const errorInfo = PERSONALIA_ERRORS['101'];
+console.log(`Error message: ${errorInfo.message}`);
+console.log(`Suggested fix: ${errorInfo.fix}`);
 ```
 
 ## License
@@ -517,6 +556,10 @@ interface CreateContentRequest {
 
 ### Field Value Formats
 
+- **Strings**: Use double quotes
+  - Valid: `"Hello"`, `"2025-02-21"`
+  - Invalid: `'Hello'`, `'2025-02-21'`
+
 - **Numbers**: No comma separator, only 1 decimal point (optional), can be negative
   - Valid: `1000.50`, `-2000`
   - Invalid: `1,000.50`
@@ -525,8 +568,9 @@ interface CreateContentRequest {
   - Valid: `2025-02-21`
   - Invalid: `21/02/2025`
 
-- **Booleans**: Use `true`/`false` in TypeScript code
-  - The API will convert these to `1`/`0` automatically
+- **Booleans**: Use string values `"1"`/`"0"` (not boolean `true`/`false`)
+  - Valid: `"1"` (true/yes/on), `"0"` (false/no/off)
+  - Invalid: `true`, `false`, `1`, `0` (as non-string values)
 
 ### Output Options
 

@@ -32,12 +32,12 @@ async function createHighResPng() {
     const requestData = {
       TemplateId: TEMPLATE_ID,
       Fields: {
-        "Product": "iron",
-        "Offer": "20%",
-        "Price": "$25",
+        Product: "iron",
+        Offer: "20%",
+        Price: "$25",
         "Expiry Date": "2025-04-01",
-        "Color": "blue", // Different color for this example
-        "Switch Sides": "1"  // Different value for this example
+        Color: "blue", // Different color for this example
+        'Switch Sides': "0"  // Different value for this example
       },
       Output: {
         Format: 'PDF' as const, // Changed to PDF since PNG might not be supported

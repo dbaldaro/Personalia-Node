@@ -7,6 +7,7 @@ import {
   TemplateInfo,
   ErrorResponse,
 } from './types';
+import { PersonaliaError, parseApiError } from './errors';
 
 export class PersonaliaClient {
   private readonly client: AxiosInstance;
@@ -30,27 +31,8 @@ export class PersonaliaClient {
     this.client.interceptors.response.use(
       response => response,
       error => {
-        // If we have a response with data
-        if (error.response?.data) {
-          const errorData = error.response.data as Partial<ErrorResponse>;
-          
-          // Check if we have the expected error fields
-          if (errorData.Reason) {
-            throw new Error(`Personalia API Error ${errorData.ErrorId || 'unknown'}: ${errorData.Reason}`);
-          }
-          
-          // If not, include as much information as possible
-          const statusCode = error.response.status;
-          const statusText = error.response.statusText;
-          throw new Error(`API Error (${statusCode} ${statusText}): ${JSON.stringify(errorData)}`);
-        }
-        
-        // For network errors or other issues
-        if (error.message) {
-          throw new Error(`Network Error: ${error.message}`);
-        }
-        
-        throw error;
+        // Parse the error and convert it to a PersonaliaError with detailed information
+        throw parseApiError(error);
       }
     );
   }
@@ -113,13 +95,11 @@ export class PersonaliaClient {
         console.log(`Polling attempt ${attempts + 1}/${maxAttempts} for request ID: ${requestId}...`);
         
         // Make the request with detailed logging
-        let response;
         try {
-          response = await this.client.get('/v1/content', {
+          const response = await this.client.get('/v1/content', {
             params: { requestId }
           });
           console.log(`API Response Status: ${response.status} ${response.statusText}`);
-          console.log(`Response Headers:`, response.headers);
           
           // Log the response data in a readable format
           console.log(`Response Data:`, JSON.stringify(response.data, null, 2));
@@ -128,50 +108,92 @@ export class PersonaliaClient {
           if (response.data.Status === 'Completed') {
             return response.data;
           } else if (response.data.Status === 'Failed') {
-            throw new Error(`Content generation failed: ${response.data.FailureDescription || 'Unknown error'}`);
+            const errorMessage = response.data.FailureDescription || 'Unknown error';
+            throw new PersonaliaError(`Content generation failed: ${errorMessage}`, 200, undefined, response.data.ErrorId);
+          } else if (response.data.Status === 'InProgress') {
+            // Content is still being processed
+            console.log(`Content is in progress, attempt ${attempts + 1}/${maxAttempts}. Waiting ${interval/1000} seconds...`);
+            await new Promise(resolve => setTimeout(resolve, interval));
+            attempts++;
           } else {
-            // Still processing, continue polling
-            console.log(`Content still processing, attempt ${attempts + 1}/${maxAttempts}. Waiting ${interval/1000} seconds...`);
+            // Unexpected status
+            console.log(`Unexpected status: ${response.data.Status}, attempt ${attempts + 1}/${maxAttempts}. Waiting ${interval/1000} seconds...`);
             await new Promise(resolve => setTimeout(resolve, interval));
             attempts++;
           }
-        } catch (requestError: any) {
-          // Log detailed information about the error response
-          console.log(`API Error Status: ${requestError.response?.status || 'unknown'} ${requestError.response?.statusText || ''}`);
-          console.log(`Error Response:`, requestError.response?.data || requestError.message);
+        } catch (error: any) {
+          // Convert to PersonaliaError if it's not already
+          const personaliaError = error instanceof PersonaliaError 
+            ? error 
+            : parseApiError(error);
           
-          // Check for 404 which might indicate content not ready yet
-          if (requestError.response?.status === 404) {
+          // Log detailed information about the error
+          console.log(`API Error: ${personaliaError.message}`);
+          console.log(`Status Code: ${personaliaError.statusCode}, Error Code: ${personaliaError.errorCode || 'N/A'}, Error ID: ${personaliaError.errorId || 'N/A'}`);
+          
+          // Check for specific error conditions that indicate we should continue polling
+          if (personaliaError.statusCode === 404) {
+            // 404 indicates content not ready yet
             console.log(`Content not ready yet (404), attempt ${attempts + 1}/${maxAttempts}. Waiting ${interval/1000} seconds...`);
             await new Promise(resolve => setTimeout(resolve, interval));
             attempts++;
+          } else if (personaliaError.errorId === '111') {
+            // Missing field error - this is a permanent error, no need to retry
+            throw personaliaError;
+          } else if (['105', '106', '107', '108'].includes(personaliaError.errorId || '')) {
+            // Fetch URL errors - these are permanent errors, no need to retry
+            throw personaliaError;
+          } else if (personaliaError.errorId === '117') {
+            // Insufficient credits - this is a permanent error, no need to retry
+            throw personaliaError;
+          } else if (personaliaError.message.toLowerCase().includes('processing') || 
+                    personaliaError.message.toLowerCase().includes('in progress')) {
+            // Still processing
+            console.log(`Content still processing, attempt ${attempts + 1}/${maxAttempts}. Waiting ${interval/1000} seconds...`);
+            await new Promise(resolve => setTimeout(resolve, interval));
+            attempts++;
           } else {
-            throw requestError; // Re-throw for other errors
+            // For other errors, throw them
+            throw personaliaError;
           }
         }
       } catch (error) {
-        // Check for various conditions that indicate the content is still processing
-        const errorMessage = error instanceof Error ? error.message.toLowerCase() : '';
-        const isStillProcessing = (
-          errorMessage.includes('not found') || 
-          errorMessage.includes('not ready') ||
-          errorMessage.includes('processing')
-        );
-        
-        if (isStillProcessing) {
-          console.log(`Content not ready yet, attempt ${attempts + 1}/${maxAttempts}. Waiting ${interval/1000} seconds...`);
-          await new Promise(resolve => setTimeout(resolve, interval));
-          attempts++;
-        } else {
-          // If it's another error, throw it
-          console.error('Polling failed with error:', error);
-          throw error;
+        // If this is a PersonaliaError that indicates we should stop polling, rethrow it
+        if (error instanceof PersonaliaError) {
+          // Check if this is an error that means we should stop polling
+          const errorId = error.errorId;
+          const permanentErrorIds = ['101', '102', '103', '104', '109', '111', '112', '113', '114', '117', '118'];
+          
+          if (errorId && permanentErrorIds.includes(errorId)) {
+            console.error('Polling stopped due to permanent error:', error.message);
+            throw error;
+          }
+          
+          // For other Personalia errors, we might want to continue polling
+          const isStillProcessing = error.message.toLowerCase().includes('processing') || 
+                                   error.message.toLowerCase().includes('in progress');
+          
+          if (isStillProcessing) {
+            console.log(`Content still processing, attempt ${attempts + 1}/${maxAttempts}. Waiting ${interval/1000} seconds...`);
+            await new Promise(resolve => setTimeout(resolve, interval));
+            attempts++;
+            continue;
+          }
         }
+        
+        // For any other errors, log and rethrow
+        console.error('Polling failed with error:', error);
+        throw error;
       }
     }
     
     const totalTime = (maxAttempts * interval) / 1000;
-    throw new Error(`Content not ready after ${maxAttempts} attempts (${totalTime} seconds). The request ID ${requestId} may still be processing. You can try retrieving it later with getContent().`);
+    throw new PersonaliaError(
+      `Content not ready after ${maxAttempts} attempts (${totalTime} seconds). The request ID ${requestId} may still be processing. You can try retrieving it later with getContent().`,
+      408, // Request Timeout
+      undefined,
+      undefined
+    );
   }
 
   /**
@@ -199,8 +221,18 @@ export class PersonaliaClient {
       return await this.pollForContent(createResponse.RequestId, maxAttempts, interval);
     } catch (error) {
       // Add the request ID to the error message for reference
-      if (error instanceof Error) {
+      if (error instanceof PersonaliaError) {
+        // Enhance the error message with the request ID
         error.message = `${error.message}\nRequest ID: ${createResponse.RequestId}`;
+      } else if (error instanceof Error) {
+        // Convert to PersonaliaError if it's not already
+        const personaliaError = new PersonaliaError(
+          `${error.message}\nRequest ID: ${createResponse.RequestId}`,
+          500, // Internal Server Error as default
+          undefined,
+          undefined
+        );
+        throw personaliaError;
       }
       throw error;
     }

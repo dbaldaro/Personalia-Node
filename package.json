@@ -1,6 +1,6 @@
 {
   "name": "personalia-node",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A TypeScript/Node.js client library for the Personalia API to generate personalized PDFs, PNGs, and JPGs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,7 +11,10 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "build": "tsc",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "lint": "eslint 'src/**/*.ts'",
+    "format": "prettier --write 'src/**/*.ts'",
+    "publish-lib": "node scripts/publish.js"
   },
   "keywords": [
     "personalia",
@@ -21,13 +24,22 @@
     "template",
     "personalization",
     "Adobe InDesign",
-    "api-client"
+    "api-client",
+    "document-generation",
+    "image-generation"
   ],
   "author": "David Baldaro",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/davidbaldaro/Personalia-Node"
+  },
+  "homepage": "https://personalia.io",
+  "bugs": {
+    "url": "https://github.com/davidbaldaro/Personalia-Node/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
